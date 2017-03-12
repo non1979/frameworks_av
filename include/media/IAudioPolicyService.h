@@ -103,7 +103,7 @@ public:
     virtual status_t registerEffect(const effect_descriptor_t *desc,
                                     audio_io_handle_t io,
                                     uint32_t strategy,
-                                    audio_session_t session,
+                                    int session,
                                     int id) = 0;
     virtual status_t unregisterEffect(int id) = 0;
     virtual status_t setEffectEnabled(int id, bool enabled) = 0;
@@ -111,7 +111,7 @@ public:
     virtual bool     isStreamActiveRemotely(audio_stream_type_t stream, uint32_t inPastMs = 0)
                              const = 0;
     virtual bool     isSourceActive(audio_source_t source) const = 0;
-    virtual status_t queryDefaultPreProcessing(audio_session_t audioSession,
+    virtual status_t queryDefaultPreProcessing(int audioSession,
                                               effect_descriptor_t *descriptors,
                                               uint32_t *count) = 0;
    // Check if offload is possible for given format, stream type, sample rate,

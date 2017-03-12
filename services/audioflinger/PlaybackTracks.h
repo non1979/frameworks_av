@@ -31,7 +31,7 @@ public:
                                 size_t frameCount,
                                 void *buffer,
                                 const sp<IMemory>& sharedBuffer,
-                                audio_session_t sessionId,
+                                int sessionId,
                                 int uid,
                                 IAudioFlinger::track_flags_t flags,
                                 track_type type);
@@ -42,7 +42,7 @@ public:
             void        dump(char* buffer, size_t size, bool active);
     virtual status_t    start(AudioSystem::sync_event_t event =
                                     AudioSystem::SYNC_EVENT_NONE,
-                             audio_session_t triggerSession = AUDIO_SESSION_NONE);
+                             int triggerSession = 0);
     virtual void        stop();
             void        pause();
 
@@ -177,7 +177,7 @@ class TimedTrack : public Track {
                                  audio_channel_mask_t channelMask,
                                  size_t frameCount,
                                  const sp<IMemory>& sharedBuffer,
-                                 audio_session_t sessionId,
+                                 int sessionId,
                                  int uid);
     virtual ~TimedTrack();
 
@@ -220,7 +220,7 @@ class TimedTrack : public Track {
                audio_channel_mask_t channelMask,
                size_t frameCount,
                const sp<IMemory>& sharedBuffer,
-               audio_session_t sessionId,
+               int sessionId,
                int uid);
 
     void timedYieldSamples_l(AudioBufferProvider::Buffer* buffer);
@@ -274,7 +274,7 @@ public:
 
     virtual status_t    start(AudioSystem::sync_event_t event =
                                     AudioSystem::SYNC_EVENT_NONE,
-                             audio_session_t triggerSession = AUDIO_SESSION_NONE);
+                             int triggerSession = 0);
     virtual void        stop();
             bool        write(int16_t* data, uint32_t frames);
             bool        bufferQueueEmpty() const { return mBufferQueue.size() == 0; }

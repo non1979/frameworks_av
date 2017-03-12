@@ -86,7 +86,7 @@ AudioRecord::AudioRecord(
         callback_t cbf,
         void* user,
         uint32_t notificationFrames,
-        audio_session_t sessionId,
+        int sessionId,
         transfer_type transferType,
         audio_input_flags_t flags,
         const audio_attributes_t* pAttributes)
@@ -132,7 +132,7 @@ status_t AudioRecord::set(
         void* user,
         uint32_t notificationFrames,
         bool threadCanCallJava,
-        audio_session_t sessionId,
+        int sessionId,
         transfer_type transferType,
         audio_input_flags_t flags,
         const audio_attributes_t* pAttributes)
@@ -229,7 +229,7 @@ status_t AudioRecord::set(
     // mNotificationFramesAct is initialized in openRecord_l
 
     if (sessionId == AUDIO_SESSION_ALLOCATE) {
-        mSessionId = (audio_session_t) AudioSystem::newAudioUniqueId();
+        mSessionId = AudioSystem::newAudioUniqueId();
     } else {
         mSessionId = sessionId;
     }
@@ -274,7 +274,7 @@ status_t AudioRecord::set(
 
 // -------------------------------------------------------------------------
 
-status_t AudioRecord::start(AudioSystem::sync_event_t event, audio_session_t triggerSession)
+status_t AudioRecord::start(AudioSystem::sync_event_t event, int triggerSession)
 {
     ALOGV("start, sync event %d trigger session %d", event, triggerSession);
 
@@ -460,7 +460,7 @@ status_t AudioRecord::openRecord_l(size_t epoch)
     }
 
     audio_io_handle_t input;
-    status = AudioSystem::getInputForAttr(&mAttributes, &input, mSessionId,
+    status = AudioSystem::getInputForAttr(&mAttributes, &input, (audio_session_t)mSessionId,
                                         mSampleRate, mFormat, mChannelMask, mFlags);
 
     if (status != NO_ERROR) {
@@ -476,7 +476,7 @@ status_t AudioRecord::openRecord_l(size_t epoch)
     size_t frameCount = mReqFrameCount;
     size_t temp = frameCount;   // temp may be replaced by a revised value of frameCount,
                                 // but we will still need the original value also
-    audio_session_t originalSessionId = mSessionId;
+    int originalSessionId = mSessionId;
 
     // The notification frame count is the period between callbacks, as suggested by the server.
     size_t notificationFrames = mNotificationFramesReq;
@@ -595,7 +595,7 @@ status_t AudioRecord::openRecord_l(size_t epoch)
     }
 
 release:
-    AudioSystem::releaseInput(input, mSessionId);
+    AudioSystem::releaseInput(input, (audio_session_t)mSessionId);
     if (status == NO_ERROR) {
         status = NO_INIT;
     }
@@ -1016,7 +1016,7 @@ status_t AudioRecord::restoreRecord_l(const char *from)
         if (mActive) {
             // callback thread or sync event hasn't changed
             // FIXME this fails if we have a new AudioFlinger instance
-            result = mAudioRecord->start(AudioSystem::SYNC_EVENT_SAME, AUDIO_SESSION_NONE);
+            result = mAudioRecord->start(AudioSystem::SYNC_EVENT_SAME, 0);
         }
     }
     if (result != NO_ERROR) {

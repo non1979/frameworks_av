@@ -75,7 +75,7 @@ class MediaPlayerService : public BnMediaPlayerService
         class CallbackData;
 
      public:
-                                AudioOutput(audio_session_t sessionId, int uid, int pid,
+                                AudioOutput(int sessionId, int uid, int pid,
                                         const audio_attributes_t * attr);
         virtual                 ~AudioOutput();
 
@@ -93,7 +93,7 @@ class MediaPlayerService : public BnMediaPlayerService
         virtual status_t        getPosition(uint32_t *position) const;
         virtual status_t        getTimestamp(AudioTimestamp &ts) const;
         virtual status_t        getFramesWritten(uint32_t *frameswritten) const;
-        virtual audio_session_t getSessionId() const;
+        virtual int             getSessionId() const;
         virtual uint32_t        getSampleRate() const;
 
         virtual status_t        open(
@@ -154,7 +154,7 @@ class MediaPlayerService : public BnMediaPlayerService
         int32_t                 mPlaybackRatePermille;
         uint32_t                mSampleRateHz; // sample rate of the content, as set in open()
         float                   mMsecsPerFrame;
-        audio_session_t         mSessionId;
+        int                     mSessionId;
         int                     mUid;
         int                     mPid;
         float                   mSendLevel;
@@ -215,7 +215,7 @@ class MediaPlayerService : public BnMediaPlayerService
         virtual status_t        getPosition(uint32_t *position) const;
         virtual status_t        getTimestamp(AudioTimestamp &ts) const;
         virtual status_t        getFramesWritten(uint32_t *frameswritten) const;
-        virtual audio_session_t getSessionId() const;
+        virtual int             getSessionId() const;
         virtual uint32_t        getSampleRate() const;
 
         virtual status_t        open(
@@ -279,8 +279,7 @@ public:
     void    removeMediaRecorderClient(wp<MediaRecorderClient> client);
     virtual sp<IMediaMetadataRetriever> createMetadataRetriever();
 
-    virtual sp<IMediaPlayer>    create(const sp<IMediaPlayerClient>& client,
-                                       audio_session_t audioSessionId);
+    virtual sp<IMediaPlayer>    create(const sp<IMediaPlayerClient>& client, int audioSessionId);
 
     virtual status_t            decode(
             const sp<IMediaHTTPService> &httpService,
@@ -405,7 +404,7 @@ private:
                 pid_t           pid() const { return mPid; }
         virtual status_t        dump(int fd, const Vector<String16>& args) const;
 
-                audio_session_t getAudioSessionId() { return mAudioSessionId; }
+                int             getAudioSessionId() { return mAudioSessionId; }
 
         virtual status_t        suspend();
         virtual status_t        resume();
@@ -416,7 +415,7 @@ private:
                                         pid_t pid,
                                         int32_t connId,
                                         const sp<IMediaPlayerClient>& client,
-                                        audio_session_t audioSessionId,
+                                        int audioSessionId,
                                         uid_t uid);
                                 Client();
         virtual                 ~Client();
@@ -451,7 +450,7 @@ private:
                     status_t                    mStatus;
                     bool                        mLoop;
                     int32_t                     mConnId;
-                    audio_session_t             mAudioSessionId;
+                    int                         mAudioSessionId;
                     audio_attributes_t *        mAudioAttributes;
                     uid_t                       mUID;
                     sp<ANativeWindow>           mConnectedWindow;

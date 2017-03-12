@@ -79,7 +79,7 @@ public:
                                 // However on failure, the client is responsible for release.
                                 audio_io_handle_t output,
                                 pid_t tid,  // -1 means unused, otherwise must be valid non-0
-                                audio_session_t *sessionId,
+                                int *sessionId,
                                 int clientUid,
                                 status_t *status) = 0;
 
@@ -92,7 +92,7 @@ public:
                                 uint32_t sampleRate,
                                 audio_channel_mask_t channelMask,
                                 audio_io_handle_t output,
-                                audio_session_t *sessionId,
+                                int *sessionId,
                                 IDirectTrackClient* client,
                                 audio_stream_type_t streamType,
                                 status_t *status) = 0;
@@ -109,7 +109,7 @@ public:
                                 size_t *pFrameCount,
                                 track_flags_t *flags,
                                 pid_t tid,  // -1 means unused, otherwise must be valid non-0
-                                audio_session_t *sessionId,
+                                int *sessionId,
                                 size_t *notificationFrames,
                                 sp<IMemory>& cblk,
                                 sp<IMemory>& buffers,   // return value 0 means it follows cblk
@@ -199,8 +199,8 @@ public:
 
     virtual audio_unique_id_t newAudioUniqueId() = 0;
 
-    virtual void acquireAudioSessionId(audio_session_t audioSession, pid_t pid) = 0;
-    virtual void releaseAudioSessionId(audio_session_t audioSession, pid_t pid) = 0;
+    virtual void acquireAudioSessionId(int audioSession, pid_t pid) = 0;
+    virtual void releaseAudioSessionId(int audioSession, pid_t pid) = 0;
 
     virtual status_t queryNumberEffects(uint32_t *numEffects) const = 0;
 
@@ -215,12 +215,12 @@ public:
                                     int32_t priority,
                                     // AudioFlinger doesn't take over handle reference from client
                                     audio_io_handle_t output,
-                                    audio_session_t sessionId,
+                                    int sessionId,
                                     status_t *status,
                                     int *id,
                                     int *enabled) = 0;
 
-    virtual status_t moveEffects(audio_session_t session, audio_io_handle_t srcOutput,
+    virtual status_t moveEffects(int session, audio_io_handle_t srcOutput,
                                     audio_io_handle_t dstOutput) = 0;
 
     virtual audio_module_handle_t loadHwModule(const char *name) = 0;

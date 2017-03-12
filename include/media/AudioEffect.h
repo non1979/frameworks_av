@@ -139,7 +139,7 @@ public:
      *               of descriptors to return.
      *               *count is limited to kMaxPreProcessing on return.
      */
-    static status_t queryDefaultPreProcessing(audio_session_t audioSession,
+    static status_t queryDefaultPreProcessing(int audioSession,
                                               effect_descriptor_t *descriptors,
                                               uint32_t *count);
 
@@ -243,7 +243,7 @@ public:
                     int32_t priority = 0,
                     effect_callback_t cbf = NULL,
                     void* user = NULL,
-                    audio_session_t sessionId = AUDIO_SESSION_OUTPUT_MIX,
+                    int sessionId = AUDIO_SESSION_OUTPUT_MIX,
                     audio_io_handle_t io = AUDIO_IO_HANDLE_NONE
                     );
 
@@ -265,7 +265,7 @@ public:
                             int32_t priority = 0,
                             effect_callback_t cbf = NULL,
                             void* user = NULL,
-                            audio_session_t sessionId = AUDIO_SESSION_OUTPUT_MIX,
+                            int sessionId = AUDIO_SESSION_OUTPUT_MIX,
                             audio_io_handle_t io = AUDIO_IO_HANDLE_NONE
                             );
 
@@ -398,7 +398,7 @@ public:
 
 protected:
      bool                    mEnabled;           // enable state
-     audio_session_t         mSessionId;         // audio session ID
+     int32_t                 mSessionId;         // audio session ID
      int32_t                 mPriority;          // priority for effect control
      status_t                mStatus;            // effect status
      effect_callback_t       mCbf;               // callback function for status, control and

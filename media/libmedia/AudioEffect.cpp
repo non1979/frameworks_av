@@ -46,7 +46,7 @@ AudioEffect::AudioEffect(const effect_uuid_t *type,
                 int32_t priority,
                 effect_callback_t cbf,
                 void* user,
-                audio_session_t sessionId,
+                int sessionId,
                 audio_io_handle_t io
                 )
     : mStatus(NO_INIT)
@@ -59,7 +59,7 @@ AudioEffect::AudioEffect(const char *typeStr,
                 int32_t priority,
                 effect_callback_t cbf,
                 void* user,
-                audio_session_t sessionId,
+                int sessionId,
                 audio_io_handle_t io
                 )
     : mStatus(NO_INIT)
@@ -91,7 +91,7 @@ status_t AudioEffect::set(const effect_uuid_t *type,
                 int32_t priority,
                 effect_callback_t cbf,
                 void* user,
-                audio_session_t sessionId,
+                int sessionId,
                 audio_io_handle_t io)
 {
     sp<IEffect> iEffect;
@@ -428,7 +428,7 @@ status_t AudioEffect::getEffectDescriptor(const effect_uuid_t *uuid,
 }
 
 
-status_t AudioEffect::queryDefaultPreProcessing(audio_session_t audioSession,
+status_t AudioEffect::queryDefaultPreProcessing(int audioSession,
                                           effect_descriptor_t *descriptors,
                                           uint32_t *count)
 {

@@ -332,7 +332,7 @@ sp<IMediaMetadataRetriever> MediaPlayerService::createMetadataRetriever()
 }
 
 sp<IMediaPlayer> MediaPlayerService::create(const sp<IMediaPlayerClient>& client,
-        audio_session_t audioSessionId)
+        int audioSessionId)
 {
     pid_t pid = IPCThreadState::self()->getCallingPid();
     int32_t connId = android_atomic_inc(&mNextConnId);
@@ -589,7 +589,7 @@ bool MediaPlayerService::hasClient(wp<Client> client)
 MediaPlayerService::Client::Client(
         const sp<MediaPlayerService>& service, pid_t pid,
         int32_t connId, const sp<IMediaPlayerClient>& client,
-        audio_session_t audioSessionId, uid_t uid)
+        int audioSessionId, uid_t uid)
 {
     ALOGV("Client(%d) constructor", connId);
     mPid = pid;
@@ -1460,7 +1460,7 @@ Exit:
 
 #undef LOG_TAG
 #define LOG_TAG "AudioSink"
-MediaPlayerService::AudioOutput::AudioOutput(audio_session_t sessionId, int uid, int pid,
+MediaPlayerService::AudioOutput::AudioOutput(int sessionId, int uid, int pid,
         const audio_attributes_t* attr)
     : mCallback(NULL),
       mCallbackCookie(NULL),
@@ -2150,7 +2150,7 @@ void MediaPlayerService::AudioOutput::CallbackWrapper(
     data->unlock();
 }
 
-audio_session_t MediaPlayerService::AudioOutput::getSessionId() const
+int MediaPlayerService::AudioOutput::getSessionId() const
 {
     return mSessionId;
 }
@@ -2395,9 +2395,9 @@ void MediaPlayerService::AudioCache::notify(
     p->mSignal.signal();
 }
 
-audio_session_t MediaPlayerService::AudioCache::getSessionId() const
+int MediaPlayerService::AudioCache::getSessionId() const
 {
-    return AUDIO_SESSION_NONE;
+    return 0;
 }
 
 uint32_t MediaPlayerService::AudioCache::getSampleRate() const

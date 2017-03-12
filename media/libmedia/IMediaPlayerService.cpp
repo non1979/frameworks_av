@@ -70,7 +70,7 @@ public:
     }
 
     virtual sp<IMediaPlayer> create(
-            const sp<IMediaPlayerClient>& client, audio_session_t audioSessionId) {
+            const sp<IMediaPlayerClient>& client, int audioSessionId) {
         Parcel data, reply;
         data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
         data.writeStrongBinder(client->asBinder());
@@ -214,7 +214,7 @@ status_t BnMediaPlayerService::onTransact(
             CHECK_INTERFACE(IMediaPlayerService, data, reply);
             sp<IMediaPlayerClient> client =
                 interface_cast<IMediaPlayerClient>(data.readStrongBinder());
-            audio_session_t audioSessionId = (audio_session_t) data.readInt32();
+            int audioSessionId = data.readInt32();
             sp<IMediaPlayer> player = create(client, audioSessionId);
             reply->writeStrongBinder(player->asBinder());
             return NO_ERROR;

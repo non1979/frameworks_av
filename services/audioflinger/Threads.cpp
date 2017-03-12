@@ -936,14 +936,14 @@ void AudioFlinger::ThreadBase::PMDeathRecipient::binderDied(const wp<IBinder>& w
 }
 
 void AudioFlinger::ThreadBase::setEffectSuspended(
-        const effect_uuid_t *type, bool suspend, audio_session_t sessionId)
+        const effect_uuid_t *type, bool suspend, int sessionId)
 {
     Mutex::Autolock _l(mLock);
     setEffectSuspended_l(type, suspend, sessionId);
 }
 
 void AudioFlinger::ThreadBase::setEffectSuspended_l(
-        const effect_uuid_t *type, bool suspend, audio_session_t sessionId)
+        const effect_uuid_t *type, bool suspend, int sessionId)
 {
     sp<EffectChain> chain = getEffectChain_l(sessionId);
     if (chain != 0) {
@@ -983,7 +983,7 @@ void AudioFlinger::ThreadBase::checkSuspendOnAddEffectChain_l(const sp<EffectCha
 
 void AudioFlinger::ThreadBase::updateSuspendedSessions_l(const effect_uuid_t *type,
                                                          bool suspend,
-                                                         audio_session_t sessionId)
+                                                         int sessionId)
 {
     ssize_t index = mSuspendedSessions.indexOfKey(sessionId);
 
@@ -1044,7 +1044,7 @@ void AudioFlinger::ThreadBase::updateSuspendedSessions_l(const effect_uuid_t *ty
 
 void AudioFlinger::ThreadBase::checkSuspendOnEffectEnabled(const sp<EffectModule>& effect,
                                                             bool enabled,
-                                                            audio_session_t sessionId)
+                                                            int sessionId)
 {
     Mutex::Autolock _l(mLock);
     checkSuspendOnEffectEnabled_l(effect, enabled, sessionId);
@@ -1052,7 +1052,7 @@ void AudioFlinger::ThreadBase::checkSuspendOnEffectEnabled(const sp<EffectModule
 
 void AudioFlinger::ThreadBase::checkSuspendOnEffectEnabled_l(const sp<EffectModule>& effect,
                                                             bool enabled,
-                                                            audio_session_t sessionId)
+                                                            int sessionId)
 {
     if (mType != RECORD) {
         // suspend all effects in AUDIO_SESSION_OUTPUT_MIX when enabling any effect on
@@ -1076,7 +1076,7 @@ sp<AudioFlinger::EffectHandle> AudioFlinger::ThreadBase::createEffect_l(
         const sp<AudioFlinger::Client>& client,
         const sp<IEffectClient>& effectClient,
         int32_t priority,
-        audio_session_t sessionId,
+        int sessionId,
         effect_descriptor_t *desc,
         int *enabled,
         status_t *status,
@@ -1261,15 +1261,13 @@ void AudioFlinger::ThreadBase::disconnectEffectHandle(EffectHandle *handle,
     }
 }
 
-sp<AudioFlinger::EffectModule> AudioFlinger::ThreadBase::getEffect(audio_session_t sessionId,
-        int effectId)
+sp<AudioFlinger::EffectModule> AudioFlinger::ThreadBase::getEffect(int sessionId, int effectId)
 {
     Mutex::Autolock _l(mLock);
     return getEffect_l(sessionId, effectId);
 }
 
-sp<AudioFlinger::EffectModule> AudioFlinger::ThreadBase::getEffect_l(audio_session_t sessionId,
-        int effectId)
+sp<AudioFlinger::EffectModule> AudioFlinger::ThreadBase::getEffect_l(int sessionId, int effectId)
 {
     sp<EffectChain> chain = getEffectChain_l(sessionId);
     return chain != 0 ? chain->getEffectFromId_l(effectId) : 0;
@@ -1280,7 +1278,7 @@ sp<AudioFlinger::EffectModule> AudioFlinger::ThreadBase::getEffect_l(audio_sessi
 status_t AudioFlinger::ThreadBase::addEffect_l(const sp<EffectModule>& effect)
 {
     // check for existing effect chain with the requested audio session
-    audio_session_t sessionId = effect->sessionId();
+    int sessionId = effect->sessionId();
     sp<EffectChain> chain = getEffectChain_l(sessionId);
     bool chainCreated = false;
 
@@ -1360,14 +1358,13 @@ void AudioFlinger::ThreadBase::unlockEffectChains(
     }
 }
 
-sp<AudioFlinger::EffectChain> AudioFlinger::ThreadBase::getEffectChain(audio_session_t sessionId)
+sp<AudioFlinger::EffectChain> AudioFlinger::ThreadBase::getEffectChain(int sessionId)
 {
     Mutex::Autolock _l(mLock);
     return getEffectChain_l(sessionId);
 }
 
-sp<AudioFlinger::EffectChain> AudioFlinger::ThreadBase::getEffectChain_l(audio_session_t sessionId)
-        const
+sp<AudioFlinger::EffectChain> AudioFlinger::ThreadBase::getEffectChain_l(int sessionId) const
 {
     size_t size = mEffectChains.size();
     for (size_t i = 0; i < size; i++) {
@@ -1595,7 +1592,7 @@ sp<AudioFlinger::PlaybackThread::Track> AudioFlinger::PlaybackThread::createTrac
         audio_channel_mask_t channelMask,
         size_t *pFrameCount,
         const sp<IMemory>& sharedBuffer,
-        audio_session_t sessionId,
+        int sessionId,
         IAudioFlinger::track_flags_t *flags,
         pid_t tid,
         int uid,
@@ -1866,14 +1863,14 @@ status_t AudioFlinger::PlaybackThread::addTrack_l(const sp<Track>& track)
             TrackBase::track_state state = track->mState;
             mLock.unlock();
             status = AudioSystem::startOutput(mId, track->streamType(),
-                                              track->sessionId());
+                                              (audio_session_t)track->sessionId());
             mLock.lock();
             // abort track was stopped/paused while we released the lock
             if (state != track->mState) {
                 if (status == NO_ERROR) {
                     mLock.unlock();
                     AudioSystem::stopOutput(mId, track->streamType(),
-                                            track->sessionId());
+                                            (audio_session_t)track->sessionId());
                     mLock.lock();
                 }
                 return INVALID_OPERATION;
@@ -2214,7 +2211,7 @@ status_t AudioFlinger::PlaybackThread::getRenderPosition(uint32_t *halFrames, ui
     }
 }
 
-uint32_t AudioFlinger::PlaybackThread::hasAudioSession(audio_session_t sessionId) const
+uint32_t AudioFlinger::PlaybackThread::hasAudioSession(int sessionId) const
 {
     Mutex::Autolock _l(mLock);
     uint32_t result = 0;
@@ -2233,7 +2230,7 @@ uint32_t AudioFlinger::PlaybackThread::hasAudioSession(audio_session_t sessionId
     return result;
 }
 
-uint32_t AudioFlinger::PlaybackThread::getStrategyForSession_l(audio_session_t sessionId)
+uint32_t AudioFlinger::PlaybackThread::getStrategyForSession_l(int sessionId)
 {
     // session AUDIO_SESSION_OUTPUT_MIX is placed in same strategy as MUSIC stream so that
     // it is moved to correct output by audio policy manager when A2DP is connected or disconnected
@@ -2316,14 +2313,14 @@ void AudioFlinger::PlaybackThread::threadLoop_removeTracks(
             const sp<Track>& track = tracksToRemove.itemAt(i);
             if (track->isExternalTrack()) {
                 AudioSystem::stopOutput(mId, track->streamType(),
-                                        track->sessionId());
+                                        (audio_session_t)track->sessionId());
 #ifdef ADD_BATTERY_DATA
                 // to track the speaker usage
                 addBatteryData(IMediaPlayerService::kBatteryDataAudioFlingerStop);
 #endif
                 if (track->isTerminated()) {
                     AudioSystem::releaseOutput(mId, track->streamType(),
-                                               track->sessionId());
+                                               (audio_session_t)track->sessionId());
                 }
             }
         }
@@ -2507,13 +2504,13 @@ void AudioFlinger::PlaybackThread::onFatalError()
 
 status_t AudioFlinger::PlaybackThread::addEffectChain_l(const sp<EffectChain>& chain)
 {
-    audio_session_t session = chain->sessionId();
+    int session = chain->sessionId();
     int16_t* buffer = reinterpret_cast<int16_t*>(mEffectBufferEnabled
             ? mEffectBuffer : mSinkBuffer);
     bool ownsBuffer = false;
 
     ALOGV("addEffectChain_l() %p on thread %p for session %d", chain.get(), this, session);
-    if (session > AUDIO_SESSION_OUTPUT_MIX) {
+    if (session > 0) {
         // Only one effect chain can be present in direct output thread and it uses
         // the sink buffer as input
         if (mType != DIRECT) {
@@ -2552,15 +2549,15 @@ status_t AudioFlinger::PlaybackThread::addEffectChain_l(const sp<EffectChain>& c
     chain->setOutBuffer(reinterpret_cast<int16_t*>(mEffectBufferEnabled
             ? mEffectBuffer : mSinkBuffer));
     // Effect chain for session AUDIO_SESSION_OUTPUT_STAGE is inserted at end of effect
-    // chains list in order to be processed last as it contains output stage effects.
+    // chains list in order to be processed last as it contains output stage effects
     // Effect chain for session AUDIO_SESSION_OUTPUT_MIX is inserted before
     // session AUDIO_SESSION_OUTPUT_STAGE to be processed
-    // after track specific effects and before output stage.
+    // after track specific effects and before output stage
     // It is therefore mandatory that AUDIO_SESSION_OUTPUT_MIX == 0 and
-    // that AUDIO_SESSION_OUTPUT_STAGE < AUDIO_SESSION_OUTPUT_MIX.
+    // that AUDIO_SESSION_OUTPUT_STAGE < AUDIO_SESSION_OUTPUT_MIX
     // Effect chain for other sessions are inserted at beginning of effect
     // chains list to be processed before output mix effects. Relative order between other
-    // sessions is not important.
+    // sessions is not important
     size_t size = mEffectChains.size();
     size_t i = 0;
     for (i = 0; i < size; i++) {
@@ -2576,7 +2573,7 @@ status_t AudioFlinger::PlaybackThread::addEffectChain_l(const sp<EffectChain>& c
 
 size_t AudioFlinger::PlaybackThread::removeEffectChain_l(const sp<EffectChain>& chain)
 {
-    audio_session_t session = chain->sessionId();
+    int session = chain->sessionId();
 
     ALOGV("removeEffectChain_l() %p from thread %p for session %d", chain.get(), this, session);
 
@@ -4078,7 +4075,7 @@ track_is_ready: ;
 
 // getTrackName_l() must be called with ThreadBase::mLock held
 int AudioFlinger::MixerThread::getTrackName_l(audio_channel_mask_t channelMask,
-        audio_format_t format, audio_session_t sessionId)
+        audio_format_t format, int sessionId)
 {
     return mAudioMixer->getTrackName(channelMask, format, sessionId);
 }
@@ -4670,7 +4667,7 @@ bool AudioFlinger::DirectOutputThread::shouldStandby_l()
 
 // getTrackName_l() must be called with ThreadBase::mLock held
 int AudioFlinger::DirectOutputThread::getTrackName_l(audio_channel_mask_t channelMask __unused,
-        audio_format_t format __unused, audio_session_t sessionId __unused)
+        audio_format_t format __unused, int sessionId __unused)
 {
     return 0;
 }
@@ -5996,8 +5993,7 @@ reacquire_wakelock:
                                   (activeTrack->mFramesToDrop >= 0) ? "timed out" : "cancelled",
                                   activeTrack->sessionId(),
                                   (activeTrack->mSyncStartEvent != 0) ?
-                                          activeTrack->mSyncStartEvent->triggerSession() :
-                                          AUDIO_SESSION_NONE);
+                                          activeTrack->mSyncStartEvent->triggerSession() : 0);
                             activeTrack->clearSyncStartEvent();
                         }
                     }
@@ -6098,7 +6094,7 @@ sp<AudioFlinger::RecordThread::RecordTrack> AudioFlinger::RecordThread::createRe
         audio_format_t format,
         audio_channel_mask_t channelMask,
         size_t *pFrameCount,
-        audio_session_t sessionId,
+        int sessionId,
         size_t *notificationFrames,
         int uid,
         IAudioFlinger::track_flags_t *flags,
@@ -6216,7 +6212,7 @@ Exit:
 
 status_t AudioFlinger::RecordThread::start(RecordThread::RecordTrack* recordTrack,
                                            AudioSystem::sync_event_t event,
-                                           audio_session_t triggerSession)
+                                           int triggerSession)
 {
     ALOGV("RecordThread::start event %d, triggerSession %d", event, triggerSession);
     sp<ThreadBase> strongMe = this;
@@ -6263,7 +6259,7 @@ status_t AudioFlinger::RecordThread::start(RecordThread::RecordTrack* recordTrac
         status_t status = NO_ERROR;
         if (recordTrack->isExternalTrack()) {
             mLock.unlock();
-            status = AudioSystem::startInput(mId, recordTrack->sessionId());
+            status = AudioSystem::startInput(mId, (audio_session_t)recordTrack->sessionId());
             mLock.lock();
             // FIXME should verify that recordTrack is still in mActiveTracks
             if (status != NO_ERROR) {
@@ -6298,7 +6294,7 @@ status_t AudioFlinger::RecordThread::start(RecordThread::RecordTrack* recordTrac
 
 startError:
     if (recordTrack->isExternalTrack()) {
-        AudioSystem::stopInput(mId, recordTrack->sessionId());
+        AudioSystem::stopInput(mId, (audio_session_t)recordTrack->sessionId());
     }
     recordTrack->clearSyncStartEvent();
     // FIXME I wonder why we do not reset the state here?
@@ -6352,7 +6348,7 @@ status_t AudioFlinger::RecordThread::setSyncEvent(const sp<SyncEvent>& event __u
         return BAD_VALUE;
     }
 
-    audio_session_t eventSession = event->triggerSession();
+    int eventSession = event->triggerSession();
     status_t ret = NAME_NOT_FOUND;
 
     Mutex::Autolock _l(mLock);
@@ -6725,7 +6721,7 @@ uint32_t AudioFlinger::RecordThread::getInputFramesLost()
     return mInput->stream->get_input_frames_lost(mInput->stream);
 }
 
-uint32_t AudioFlinger::RecordThread::hasAudioSession(audio_session_t sessionId) const
+uint32_t AudioFlinger::RecordThread::hasAudioSession(int sessionId) const
 {
     Mutex::Autolock _l(mLock);
     uint32_t result = 0;
@@ -6743,13 +6739,13 @@ uint32_t AudioFlinger::RecordThread::hasAudioSession(audio_session_t sessionId) 
     return result;
 }
 
-KeyedVector<audio_session_t, bool> AudioFlinger::RecordThread::sessionIds() const
+KeyedVector<int, bool> AudioFlinger::RecordThread::sessionIds() const
 {
-    KeyedVector<audio_session_t, bool> ids;
+    KeyedVector<int, bool> ids;
     Mutex::Autolock _l(mLock);
     for (size_t j = 0; j < mTracks.size(); ++j) {
         sp<RecordThread::RecordTrack> track = mTracks[j];
-        audio_session_t sessionId = track->sessionId();
+        int sessionId = track->sessionId();
         if (ids.indexOfKey(sessionId) < 0) {
             ids.add(sessionId, true);
         }

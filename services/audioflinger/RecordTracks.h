@@ -29,13 +29,13 @@ public:
                                 audio_channel_mask_t channelMask,
                                 size_t frameCount,
                                 void *buffer,
-                                audio_session_t sessionId,
+                                int sessionId,
                                 int uid,
                                 IAudioFlinger::track_flags_t flags,
                                 track_type type);
     virtual             ~RecordTrack();
 
-    virtual status_t    start(AudioSystem::sync_event_t event, audio_session_t triggerSession);
+    virtual status_t    start(AudioSystem::sync_event_t event, int triggerSession);
     virtual void        stop();
 
             void        destroy();
