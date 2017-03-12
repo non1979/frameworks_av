@@ -235,6 +235,7 @@ public:
             return 0;
         }
         return effect->id();
+    }
     int priority() const { return mPriority; }
     bool hasControl() const { return mHasControl; }
     bool disconnected() const { return mDisconnected; }

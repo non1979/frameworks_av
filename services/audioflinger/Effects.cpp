@@ -1362,6 +1362,7 @@ void AudioFlinger::EffectHandle::disconnect(bool unpinIfLast)
     if (mDisconnected) {
         if (unpinIfLast) {
             android_errorWriteLog(0x534e4554, "32707507");
+        }
         return;
     }
     mDisconnected = true;
