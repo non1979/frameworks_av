@@ -37,7 +37,7 @@ namespace android {
 Visualizer::Visualizer (int32_t priority,
          effect_callback_t cbf,
          void* user,
-         int sessionId)
+         audio_session_t sessionId)
     :   AudioEffect(SL_IID_VISUALIZATION, NULL, priority, cbf, user, sessionId),
         mCaptureRate(CAPTURE_RATE_DEF),
         mCaptureSize(CAPTURE_SIZE_DEF),

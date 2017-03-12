@@ -230,7 +230,7 @@ public:
      * the specified event occurs on the specified trigger session.
      */
             status_t    start(AudioSystem::sync_event_t event = AudioSystem::SYNC_EVENT_NONE,
-                              int triggerSession = 0);
+                              audio_session_t triggerSession = AUDIO_SESSION_NONE);
 
     /* Stop a track.  The callback will cease being called.  Note that obtainBuffer() still
      * works and will drain buffers until the pool is exhausted, and then will return WOULD_BLOCK.
@@ -321,7 +321,7 @@ public:
      *
      * No lock needed because session ID doesn't change after first set().
      */
-            int    getSessionId() const { return mSessionId; }
+            audio_session_t getSessionId() const { return mSessionId; }
 
     /* Obtains a buffer of up to "audioBuffer->frameCount" full frames.
      * After draining these frames of data, the caller should release them with releaseBuffer().
@@ -495,7 +495,7 @@ private:
     uint32_t                mLatency;           // in ms
     audio_channel_mask_t    mChannelMask;
     audio_input_flags_t     mFlags;
-    int                     mSessionId;
+    audio_session_t         mSessionId;
     transfer_type           mTransfer;
 
     // Next 5 fields may be changed if IAudioRecord is re-created, but always != 0

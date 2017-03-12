@@ -91,7 +91,7 @@ AudioFlinger::ThreadBase::TrackBase::TrackBase(
             audio_channel_mask_t channelMask,
             size_t frameCount,
             void *buffer,
-            int sessionId,
+            audio_session_t sessionId,
             int clientUid,
             IAudioFlinger::track_flags_t flags,
             bool isOut,
@@ -402,7 +402,7 @@ AudioFlinger::PlaybackThread::Track::Track(
             size_t frameCount,
             void *buffer,
             const sp<IMemory>& sharedBuffer,
-            int sessionId,
+            audio_session_t sessionId,
             int uid,
             IAudioFlinger::track_flags_t flags,
             track_type type)
@@ -678,7 +678,7 @@ bool AudioFlinger::PlaybackThread::Track::isReady() const {
 }
 
 status_t AudioFlinger::PlaybackThread::Track::start(AudioSystem::sync_event_t event __unused,
-                                                    int triggerSession __unused)
+                                                    audio_session_t triggerSession __unused)
 {
     status_t status = NO_ERROR;
     ALOGV("start(%d), calling pid %d session %d",
@@ -1191,7 +1191,7 @@ AudioFlinger::PlaybackThread::TimedTrack::create(
             audio_channel_mask_t channelMask,
             size_t frameCount,
             const sp<IMemory>& sharedBuffer,
-            int sessionId,
+            audio_session_t sessionId,
             int uid)
 {
     if (!client->reserveTimedTrack())
@@ -1211,7 +1211,7 @@ AudioFlinger::PlaybackThread::TimedTrack::TimedTrack(
             audio_channel_mask_t channelMask,
             size_t frameCount,
             const sp<IMemory>& sharedBuffer,
-            int sessionId,
+            audio_session_t sessionId,
             int uid)
     : Track(thread, client, streamType, sampleRate, format, channelMask,
             frameCount, (sharedBuffer != 0) ? sharedBuffer->pointer() : NULL, sharedBuffer,
@@ -1711,7 +1711,8 @@ AudioFlinger::PlaybackThread::OutputTrack::OutputTrack(
             int uid)
     :   Track(playbackThread, NULL, AUDIO_STREAM_PATCH,
               sampleRate, format, channelMask, frameCount,
-              NULL, 0, 0, uid, IAudioFlinger::TRACK_DEFAULT, TYPE_OUTPUT),
+              NULL, 0, AUDIO_SESSION_NONE, uid, IAudioFlinger::TRACK_DEFAULT,
+              TYPE_OUTPUT),
     mActive(false), mSourceThread(sourceThread), mClientProxy(NULL)
 {
 
@@ -1742,7 +1743,7 @@ AudioFlinger::PlaybackThread::OutputTrack::~OutputTrack()
 }
 
 status_t AudioFlinger::PlaybackThread::OutputTrack::start(AudioSystem::sync_event_t event,
-                                                          int triggerSession)
+                                                          audio_session_t triggerSession)
 {
     status_t status = Track::start(event, triggerSession);
     if (status != NO_ERROR) {
@@ -1928,7 +1929,7 @@ AudioFlinger::PlaybackThread::PatchTrack::PatchTrack(PlaybackThread *playbackThr
                                                      IAudioFlinger::track_flags_t flags)
     :   Track(playbackThread, NULL, AUDIO_STREAM_PATCH,
               sampleRate, format, channelMask, frameCount,
-              buffer, 0, 0, getuid(), flags, TYPE_PATCH),
+              buffer, 0, AUDIO_SESSION_NONE, getuid(), flags, TYPE_PATCH),
               mProxy(new ClientProxy(mCblk, mBuffer, frameCount, mFrameSize, true, true))
 {
     uint64_t mixBufferNs = ((uint64_t)2 * playbackThread->frameCount() * 1000000000) /
@@ -2006,7 +2007,7 @@ AudioFlinger::RecordHandle::~RecordHandle() {
 }
 
 status_t AudioFlinger::RecordHandle::start(int /*AudioSystem::sync_event_t*/ event,
-        int triggerSession) {
+        audio_session_t triggerSession) {
     ALOGV("RecordHandle::start()");
     return mRecordTrack->start((AudioSystem::sync_event_t)event, triggerSession);
 }
@@ -2037,7 +2038,7 @@ AudioFlinger::RecordThread::RecordTrack::RecordTrack(
             audio_channel_mask_t channelMask,
             size_t frameCount,
             void *buffer,
-            int sessionId,
+            audio_session_t sessionId,
             int uid,
             IAudioFlinger::track_flags_t flags,
             track_type type)
@@ -2103,7 +2104,7 @@ status_t AudioFlinger::RecordThread::RecordTrack::getNextBuffer(AudioBufferProvi
 }
 
 status_t AudioFlinger::RecordThread::RecordTrack::start(AudioSystem::sync_event_t event,
-                                                        int triggerSession)
+                                                        audio_session_t triggerSession)
 {
     sp<ThreadBase> thread = mThread.promote();
     if (thread != 0) {
@@ -2120,7 +2121,7 @@ void AudioFlinger::RecordThread::RecordTrack::stop()
     if (thread != 0) {
         RecordThread *recordThread = (RecordThread *)thread.get();
         if (recordThread->stop(this) && isExternalTrack()) {
-            AudioSystem::stopInput(mThreadIoHandle, (audio_session_t)mSessionId);
+            AudioSystem::stopInput(mThreadIoHandle, mSessionId);
         }
     }
 }
@@ -2132,7 +2133,7 @@ void AudioFlinger::RecordThread::RecordTrack::destroy()
     {
         if (isExternalTrack()) {
             if (mState == ACTIVE || mState == RESUMING) {
-                AudioSystem::stopInput(mThreadIoHandle, (audio_session_t)mSessionId);
+                AudioSystem::stopInput(mThreadIoHandle, mSessionId);
             }
             AudioSystem::releaseInput(mThreadIoHandle, (audio_session_t)mSessionId);
         }
@@ -2208,7 +2209,7 @@ AudioFlinger::RecordThread::PatchRecord::PatchRecord(RecordThread *recordThread,
                                                      void *buffer,
                                                      IAudioFlinger::track_flags_t flags)
     :   RecordTrack(recordThread, NULL, sampleRate, format, channelMask, frameCount,
-                buffer, 0, getuid(), flags, TYPE_PATCH),
+                buffer, AUDIO_SESSION_NONE, getuid(), flags, TYPE_PATCH),
                 mProxy(new ClientProxy(mCblk, mBuffer, frameCount, mFrameSize, false, true))
 {
     uint64_t mixBufferNs = ((uint64_t)2 * recordThread->frameCount() * 1000000000) /

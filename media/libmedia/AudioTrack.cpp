@@ -142,7 +142,7 @@ AudioTrack::AudioTrack(
         callback_t cbf,
         void* user,
         uint32_t notificationFrames,
-        int sessionId,
+        audio_session_t sessionId,
         transfer_type transferType,
         const audio_offload_info_t *offloadInfo,
         int uid,
@@ -184,7 +184,7 @@ AudioTrack::AudioTrack(
         callback_t cbf,
         void* user,
         uint32_t notificationFrames,
-        int sessionId,
+        audio_session_t sessionId,
         transfer_type transferType,
         const audio_offload_info_t *offloadInfo,
         int uid,
@@ -328,7 +328,7 @@ status_t AudioTrack::set(
         uint32_t notificationFrames,
         const sp<IMemory>& sharedBuffer,
         bool threadCanCallJava,
-        int sessionId,
+        audio_session_t sessionId,
         transfer_type transferType,
         const audio_offload_info_t *offloadInfo,
         int uid,
@@ -558,7 +558,7 @@ status_t AudioTrack::set(
     mNotificationFramesReq = notificationFrames;
     mNotificationFramesAct = 0;
     if (sessionId == AUDIO_SESSION_ALLOCATE) {
-        mSessionId = AudioSystem::newAudioUniqueId();
+        mSessionId = (audio_session_t) AudioSystem::newAudioUniqueId();
     } else {
         mSessionId = sessionId;
     }
@@ -584,7 +584,7 @@ status_t AudioTrack::set(
 
     if (flags & AUDIO_OUTPUT_FLAG_LPA || flags & AUDIO_OUTPUT_FLAG_TUNNEL) {
          AudioSystem::getOutputForAttr(&mAttributes, &output,
-                                            (audio_session_t)mSessionId, &streamType, 
+                                            mSessionId, &streamType, 
                                              mSampleRate, mFormat,mChannelMask, 
                                              mFlags, mOffloadInfo); 
 
@@ -1258,7 +1258,7 @@ status_t AudioTrack::createTrack_l()
         audio_output_flags_t flags = (audio_output_flags_t) (mFlags & ~AUDIO_OUTPUT_FLAG_DEEP_BUFFER);
         flags = (audio_output_flags_t) (flags | AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD);
         status = AudioSystem::getOutputForAttr(attr, &output,
-                                                (audio_session_t) mSessionId, &streamType,
+                                                mSessionId, &streamType,
                                                 mSampleRate, mPcmTrackOffloadInfo.format,
                                                 mChannelMask, (audio_output_flags_t) (flags),
                                                 &mPcmTrackOffloadInfo);
@@ -1272,7 +1272,7 @@ status_t AudioTrack::createTrack_l()
     if (status != NO_ERROR || output == AUDIO_IO_HANDLE_NONE) {
         resetTrackOffloadParams();
         status = AudioSystem::getOutputForAttr(attr, &output,
-                                                        (audio_session_t)mSessionId, &streamType,
+                                                        mSessionId, &streamType,
                                                         mSampleRate, mFormat, mChannelMask,
                                                         mFlags, mOffloadInfo);
         ALOGV("retrieving regular output");
@@ -1605,7 +1605,7 @@ status_t AudioTrack::createTrack_l()
     }
 
 release:
-    AudioSystem::releaseOutput(output, streamType, (audio_session_t)mSessionId);
+    AudioSystem::releaseOutput(output, streamType, mSessionId);
     if (status == NO_ERROR) {
         status = NO_INIT;
     }

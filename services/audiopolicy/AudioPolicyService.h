@@ -122,7 +122,7 @@ public:
     virtual status_t registerEffect(const effect_descriptor_t *desc,
                                     audio_io_handle_t io,
                                     uint32_t strategy,
-                                    int session,
+                                    audio_session_t session,
                                     int id);
     virtual status_t unregisterEffect(int id);
     virtual status_t setEffectEnabled(int id, bool enabled);
@@ -130,7 +130,7 @@ public:
     virtual bool isStreamActiveRemotely(audio_stream_type_t stream, uint32_t inPastMs = 0) const;
     virtual bool isSourceActive(audio_source_t source) const;
 
-    virtual status_t queryDefaultPreProcessing(int audioSession,
+    virtual status_t queryDefaultPreProcessing(audio_session_t audioSession,
                                               effect_descriptor_t *descriptors,
                                               uint32_t *count);
     virtual     status_t    onTransact(
@@ -448,7 +448,7 @@ private:
         virtual status_t setVoiceVolume(float volume, int delayMs = 0);
 
         // move effect to the specified output
-        virtual status_t moveEffects(int session,
+        virtual status_t moveEffects(audio_session_t session,
                                          audio_io_handle_t srcOutput,
                                          audio_io_handle_t dstOutput);
 

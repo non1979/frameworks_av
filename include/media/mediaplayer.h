@@ -266,7 +266,7 @@ public:
             status_t        setMetadataFilter(const Parcel& filter);
             status_t        getMetadata(bool update_only, bool apply_filter, Parcel *metadata);
             status_t        setAudioSessionId(int sessionId);
-            int             getAudioSessionId();
+            audio_session_t getAudioSessionId();
             status_t        setAuxEffectSendLevel(float level);
             status_t        attachAuxEffect(int effectId);
             status_t        setParameter(int key, const Parcel& request);
@@ -305,7 +305,7 @@ private:
     float                       mRightVolume;
     int                         mVideoWidth;
     int                         mVideoHeight;
-    int                         mAudioSessionId;
+    audio_session_t             mAudioSessionId;
     float                       mSendLevel;
     struct sockaddr_in          mRetransmitEndpoint;
     bool                        mRetransmitEndpointValid;

@@ -61,7 +61,7 @@ MediaPlayer::MediaPlayer()
     mLeftVolume = mRightVolume = 1.0;
     mVideoWidth = mVideoHeight = 0;
     mLockThreadId = 0;
-    mAudioSessionId = AudioSystem::newAudioUniqueId();
+    mAudioSessionId = (audio_session_t) AudioSystem::newAudioUniqueId();
     AudioSystem::acquireAudioSessionId(mAudioSessionId, -1);
     mSendLevel = 0;
     mRetransmitEndpointValid = false;
@@ -608,7 +608,7 @@ status_t MediaPlayer::setVolume(float leftVolume, float rightVolume)
     return OK;
 }
 
-status_t MediaPlayer::setAudioSessionId(int sessionId)
+status_t MediaPlayer::setAudioSessionId(audio_session_t sessionId)
 {
     ALOGV("MediaPlayer::setAudioSessionId(%d)", sessionId);
     Mutex::Autolock _l(mLock);
@@ -627,7 +627,7 @@ status_t MediaPlayer::setAudioSessionId(int sessionId)
     return NO_ERROR;
 }
 
-int MediaPlayer::getAudioSessionId()
+audio_session_t MediaPlayer::getAudioSessionId()
 {
     Mutex::Autolock _l(mLock);
     return mAudioSessionId;

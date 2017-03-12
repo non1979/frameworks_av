@@ -597,7 +597,7 @@ sp<IAudioTrack> AudioFlinger::createTrack(
         const sp<IMemory>& sharedBuffer,
         audio_io_handle_t output,
         pid_t tid,
-        int *sessionId,
+        audio_session_t *sessionId,
         int clientUid,
         status_t *status)
 {
@@ -605,7 +605,7 @@ sp<IAudioTrack> AudioFlinger::createTrack(
     sp<TrackHandle> trackHandle;
     sp<Client> client;
     status_t lStatus;
-    int lSessionId;
+    audio_session_t lSessionId;
 
     // client AudioTrack::set already implements AUDIO_STREAM_DEFAULT => AUDIO_STREAM_MUSIC,
     // but if someone uses binder directly they could bypass that and cause us to crash
@@ -671,7 +671,7 @@ sp<IAudioTrack> AudioFlinger::createTrack(
             }
         } else {
             // if no audio session id is provided, create one here
-            lSessionId = nextUniqueId();
+            lSessionId = (audio_session_t) nextUniqueId();
             if (sessionId != NULL) {
                 *sessionId = lSessionId;
             }
@@ -707,7 +707,7 @@ sp<IAudioTrack> AudioFlinger::createTrack(
             }
         }
 
-        setAudioHwSyncForSession_l(thread, (audio_session_t)lSessionId);
+        setAudioHwSyncForSession_l(thread, lSessionId);
     }
 
     if (lStatus != NO_ERROR) {
@@ -737,7 +737,7 @@ sp<IDirectTrack> AudioFlinger::createDirectTrack(
         uint32_t sampleRate,
         audio_channel_mask_t channelMask,
         audio_io_handle_t output,
-        int *sessionId,
+        audio_session_t *sessionId,
         IDirectTrackClient *client,
         audio_stream_type_t streamType,
         status_t *status)
@@ -1289,10 +1289,10 @@ status_t AudioFlinger::setParameters(audio_io_handle_t ioHandle, const String8& 
                     audio_devices_t device = thread->inDevice();
                     bool suspend = audio_is_bluetooth_sco_device(device) && btNrecIsOff;
                     // collect all of the thread's session IDs
-                    KeyedVector<int, bool> ids = thread->sessionIds();
+                    KeyedVector<audio_session_t, bool> ids = thread->sessionIds();
                     // suspend effects associated with those session IDs
                     for (size_t j = 0; j < ids.size(); ++j) {
-                        int sessionId = ids.keyAt(j);
+                        audio_session_t sessionId = ids.keyAt(j);
                         thread->setEffectSuspended(FX_IID_AEC,
                                                    suspend,
                                                    sessionId);
@@ -1608,7 +1608,8 @@ void AudioFlinger::removeClient_l(pid_t pid)
 }
 
 // getEffectThread_l() must be called with AudioFlinger::mLock held
-sp<AudioFlinger::PlaybackThread> AudioFlinger::getEffectThread_l(int sessionId, int EffectId)
+sp<AudioFlinger::PlaybackThread> AudioFlinger::getEffectThread_l(audio_session_t sessionId,
+        int EffectId)
 {
     sp<PlaybackThread> thread;
 
@@ -1713,7 +1714,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
         size_t *frameCount,
         IAudioFlinger::track_flags_t *flags,
         pid_t tid,
-        int *sessionId,
+        audio_session_t *sessionId,
         size_t *notificationFrames,
         sp<IMemory>& cblk,
         sp<IMemory>& buffers,
@@ -1723,7 +1724,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
     sp<RecordHandle> recordHandle;
     sp<Client> client;
     status_t lStatus;
-    int lSessionId;
+    audio_session_t lSessionId;
 
     cblk.clear();
     buffers.clear();
@@ -1774,7 +1775,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
             lSessionId = *sessionId;
         } else {
             // if no audio session id is provided, create one here
-            lSessionId = nextUniqueId();
+            lSessionId = (audio_session_t) nextUniqueId();
             if (sessionId != NULL) {
                 *sessionId = lSessionId;
             }
@@ -1791,7 +1792,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
         if (lStatus == NO_ERROR) {
             // Check if one effect chain was awaiting for an AudioRecord to be created on this
             // session and move it to this thread.
-            sp<EffectChain> chain = getOrphanEffectChain_l((audio_session_t)lSessionId);
+            sp<EffectChain> chain = getOrphanEffectChain_l(lSessionId);
             if (chain != 0) {
                 Mutex::Autolock _l(thread->mLock);
                 thread->addEffectChain_l(chain);
@@ -2577,7 +2578,7 @@ audio_unique_id_t AudioFlinger::newAudioUniqueId()
     return nextUniqueId();
 }
 
-void AudioFlinger::acquireAudioSessionId(int audioSession, pid_t pid)
+void AudioFlinger::acquireAudioSessionId(audio_session_t audioSession, pid_t pid)
 {
     Mutex::Autolock _l(mLock);
     pid_t caller = IPCThreadState::self()->getCallingPid();
@@ -2611,7 +2612,7 @@ void AudioFlinger::acquireAudioSessionId(int audioSession, pid_t pid)
     ALOGV(" added new entry for %d", audioSession);
 }
 
-void AudioFlinger::releaseAudioSessionId(int audioSession, pid_t pid)
+void AudioFlinger::releaseAudioSessionId(audio_session_t audioSession, pid_t pid)
 {
     Mutex::Autolock _l(mLock);
     pid_t caller = IPCThreadState::self()->getCallingPid();
@@ -2759,8 +2760,8 @@ audio_devices_t AudioFlinger::primaryOutputDevice_l() const
 }
 
 sp<AudioFlinger::SyncEvent> AudioFlinger::createSyncEvent(AudioSystem::sync_event_t type,
-                                    int triggerSession,
-                                    int listenerSession,
+                                    audio_session_t triggerSession,
+                                    audio_session_t listenerSession,
                                     sync_event_callback_t callBack,
                                     wp<RefBase> cookie)
 {
@@ -2820,7 +2821,7 @@ sp<IEffect> AudioFlinger::createEffect(
         const sp<IEffectClient>& effectClient,
         int32_t priority,
         audio_io_handle_t io,
-        int sessionId,
+        audio_session_t sessionId,
         status_t *status,
         int *id,
         int *enabled)
@@ -2980,7 +2981,7 @@ sp<IEffect> AudioFlinger::createEffect(
         } else {
             // Check if one effect chain was awaiting for an effect to be created on this
             // session and used it instead of creating a new one.
-            sp<EffectChain> chain = getOrphanEffectChain_l((audio_session_t)sessionId);
+            sp<EffectChain> chain = getOrphanEffectChain_l(sessionId);
             if (chain != 0) {
                 Mutex::Autolock _l(thread->mLock);
                 thread->addEffectChain_l(chain);
@@ -3008,7 +3009,7 @@ Exit:
     return handle;
 }
 
-status_t AudioFlinger::moveEffects(int sessionId, audio_io_handle_t srcOutput,
+status_t AudioFlinger::moveEffects(audio_session_t sessionId, audio_io_handle_t srcOutput,
         audio_io_handle_t dstOutput)
 {
     ALOGV("moveEffects() session %d, srcOutput %d, dstOutput %d",
@@ -3040,7 +3041,7 @@ status_t AudioFlinger::moveEffects(int sessionId, audio_io_handle_t srcOutput,
 }
 
 // moveEffectChain_l must be called with both srcThread and dstThread mLocks held
-status_t AudioFlinger::moveEffectChain_l(int sessionId,
+status_t AudioFlinger::moveEffectChain_l(audio_session_t sessionId,
                                    AudioFlinger::PlaybackThread *srcThread,
                                    AudioFlinger::PlaybackThread *dstThread,
                                    bool reRegister)
@@ -3173,7 +3174,7 @@ void AudioFlinger::onNonOffloadableGlobalEffectEnable()
 
 status_t AudioFlinger::putOrphanEffectChain_l(const sp<AudioFlinger::EffectChain>& chain)
 {
-    audio_session_t session = (audio_session_t)chain->sessionId();
+    audio_session_t session = chain->sessionId();
     ssize_t index = mOrphanEffectChains.indexOfKey(session);
     ALOGV("putOrphanEffectChain_l session %d index %d", session, index);
     if (index >= 0) {
@@ -3199,7 +3200,7 @@ sp<AudioFlinger::EffectChain> AudioFlinger::getOrphanEffectChain_l(audio_session
 bool AudioFlinger::updateOrphanEffectChains(const sp<AudioFlinger::EffectModule>& effect)
 {
     Mutex::Autolock _l(mLock);
-    audio_session_t session = (audio_session_t)effect->sessionId();
+    audio_session_t session = effect->sessionId();
     ssize_t index = mOrphanEffectChains.indexOfKey(session);
     ALOGV("updateOrphanEffectChains session %d index %d", session, index);
     if (index >= 0) {

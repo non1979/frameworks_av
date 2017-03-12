@@ -192,7 +192,7 @@ public:
                                     callback_t cbf       = NULL,
                                     void* user           = NULL,
                                     uint32_t notificationFrames = 0,
-                                    int sessionId        = AUDIO_SESSION_ALLOCATE,
+                                    int sessionId  = AUDIO_SESSION_ALLOCATE,
                                     transfer_type transferType = TRANSFER_DEFAULT,
                                     const audio_offload_info_t *offloadInfo = NULL,
                                     int uid = -1,
@@ -219,7 +219,7 @@ public:
                                     callback_t cbf      = NULL,
                                     void* user          = NULL,
                                     uint32_t notificationFrames = 0,
-                                    int sessionId       = AUDIO_SESSION_ALLOCATE,
+                                    audio_session_t sessionId   = AUDIO_SESSION_ALLOCATE,
                                     transfer_type transferType = TRANSFER_DEFAULT,
                                     const audio_offload_info_t *offloadInfo = NULL,
                                     int uid = -1,
@@ -261,7 +261,7 @@ public:
                             uint32_t notificationFrames = 0,
                             const sp<IMemory>& sharedBuffer = 0,
                             bool threadCanCallJava = false,
-                            int sessionId       = AUDIO_SESSION_ALLOCATE,
+                            int sessionId  = AUDIO_SESSION_ALLOCATE,
                             transfer_type transferType = TRANSFER_DEFAULT,
                             const audio_offload_info_t *offloadInfo = NULL,
                             int uid = -1,
@@ -478,7 +478,7 @@ public:
      * Returned value:
      *  AudioTrack session ID.
      */
-            int    getSessionId() const { return mSessionId; }
+            audio_session_t getSessionId() const { return mSessionId; }
 
     /* Attach track auxiliary output to specified effect. Use effectId = 0
      * to detach track from effect.
@@ -807,7 +807,7 @@ protected:
         // const after set(), except for bits AUDIO_OUTPUT_FLAG_FAST and AUDIO_OUTPUT_FLAG_OFFLOAD.
         // mLock must be held to read or write those bits reliably.
 
-    int                     mSessionId;
+    audio_session_t         mSessionId;
     int                     mAuxEffectId;
 
     mutable Mutex           mLock;

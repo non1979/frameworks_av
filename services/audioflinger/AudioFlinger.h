@@ -137,7 +137,7 @@ public:
                                 const sp<IMemory>& sharedBuffer,
                                 audio_io_handle_t output,
                                 pid_t tid,
-                                int *sessionId,
+                                audio_session_t *sessionId,
                                 int clientUid,
                                 status_t *status /*non-NULL*/);
 
@@ -147,7 +147,7 @@ public:
                                 uint32_t sampleRate,
                                 audio_channel_mask_t channelMask,
                                 audio_io_handle_t output,
-                                int *sessionId,
+                                audio_session_t *sessionId,
                                 IDirectTrackClient* client,
                                 audio_stream_type_t streamType,
                                 status_t *status);
@@ -162,7 +162,7 @@ public:
                                 size_t *pFrameCount,
                                 IAudioFlinger::track_flags_t *flags,
                                 pid_t tid,
-                                int *sessionId,
+                                audio_session_t *sessionId,
                                 size_t *notificationFrames,
                                 sp<IMemory>& cblk,
                                 sp<IMemory>& buffers,
@@ -240,9 +240,9 @@ public:
 
     virtual audio_unique_id_t newAudioUniqueId();
 
-    virtual void acquireAudioSessionId(int audioSession, pid_t pid);
+    virtual void acquireAudioSessionId(audio_session_t audioSession, pid_t pid);
 
-    virtual void releaseAudioSessionId(int audioSession, pid_t pid);
+    virtual void releaseAudioSessionId(audio_session_t audioSession, pid_t pid);
 
     virtual status_t queryNumberEffects(uint32_t *numEffects) const;
 
@@ -256,12 +256,12 @@ public:
                         const sp<IEffectClient>& effectClient,
                         int32_t priority,
                         audio_io_handle_t io,
-                        int sessionId,
+                        audio_session_t sessionId,
                         status_t *status /*non-NULL*/,
                         int *id,
                         int *enabled);
 
-    virtual status_t moveEffects(int sessionId, audio_io_handle_t srcOutput,
+    virtual status_t moveEffects(audio_session_t sessionId, audio_io_handle_t srcOutput,
                         audio_io_handle_t dstOutput);
 
     virtual audio_module_handle_t loadHwModule(const char *name);
@@ -329,8 +329,8 @@ public:
     class SyncEvent : public RefBase {
     public:
         SyncEvent(AudioSystem::sync_event_t type,
-                  int triggerSession,
-                  int listenerSession,
+                  audio_session_t triggerSession,
+                  audio_session_t listenerSession,
                   sync_event_callback_t callBack,
                   wp<RefBase> cookie)
         : mType(type), mTriggerSession(triggerSession), mListenerSession(listenerSession),
@@ -343,22 +343,22 @@ public:
         bool isCancelled() const { Mutex::Autolock _l(mLock); return (mCallback == NULL); }
         void cancel() { Mutex::Autolock _l(mLock); mCallback = NULL; }
         AudioSystem::sync_event_t type() const { return mType; }
-        int triggerSession() const { return mTriggerSession; }
-        int listenerSession() const { return mListenerSession; }
+        audio_session_t triggerSession() const { return mTriggerSession; }
+        audio_session_t listenerSession() const { return mListenerSession; }
         wp<RefBase> cookie() const { return mCookie; }
 
     private:
           const AudioSystem::sync_event_t mType;
-          const int mTriggerSession;
-          const int mListenerSession;
+          const audio_session_t mTriggerSession;
+          const audio_session_t mListenerSession;
           sync_event_callback_t mCallback;
           const wp<RefBase> mCookie;
           mutable Mutex mLock;
     };
 
     sp<SyncEvent> createSyncEvent(AudioSystem::sync_event_t type,
-                                        int triggerSession,
-                                        int listenerSession,
+                                        audio_session_t triggerSession,
+                                        audio_session_t listenerSession,
                                         sync_event_callback_t callBack,
                                         wp<RefBase> cookie);
 
@@ -562,7 +562,8 @@ private:
     public:
         RecordHandle(const sp<RecordThread::RecordTrack>& recordTrack);
         virtual             ~RecordHandle();
-        virtual status_t    start(int /*AudioSystem::sync_event_t*/ event, int triggerSession);
+        virtual status_t    start(int /*AudioSystem::sync_event_t*/ event,
+                audio_session_t triggerSession);
         virtual void        stop();
         virtual status_t onTransact(
             uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags);
@@ -724,7 +725,7 @@ private:
               //       or by returning a non-unique ID.
               uint32_t nextUniqueId();
 
-              status_t moveEffectChain_l(int sessionId,
+              status_t moveEffectChain_l(audio_session_t sessionId,
                                      PlaybackThread *srcThread,
                                      PlaybackThread *dstThread,
                                      bool reRegister);
@@ -732,7 +733,7 @@ private:
               PlaybackThread *primaryPlaybackThread_l() const;
               audio_devices_t primaryOutputDevice_l() const;
 
-              sp<PlaybackThread> getEffectThread_l(int sessionId, int EffectId);
+              sp<PlaybackThread> getEffectThread_l(audio_session_t sessionId, int EffectId);
 
 
                 void        removeClient_l(pid_t pid);
@@ -838,9 +839,9 @@ private:
 
     // for mAudioSessionRefs only
     struct AudioSessionRef {
-        AudioSessionRef(int sessionid, pid_t pid) :
+        AudioSessionRef(audio_session_t sessionid, pid_t pid) :
             mSessionid(sessionid), mPid(pid), mCnt(1) {}
-        const int   mSessionid;
+        const audio_session_t mSessionid;
         const pid_t mPid;
         int         mCnt;
     };

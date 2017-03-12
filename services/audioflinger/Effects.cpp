@@ -1588,7 +1588,7 @@ void AudioFlinger::EffectHandle::dumpToBuffer(char* buffer, size_t size)
 #define LOG_TAG "AudioFlinger::EffectChain"
 
 AudioFlinger::EffectChain::EffectChain(ThreadBase *thread,
-                                        int sessionId)
+                                        audio_session_t sessionId)
     : mThread(thread), mSessionId(sessionId), mActiveTrackCnt(0), mTrackCnt(0), mTailBufferCount(0),
       mOwnInBuffer(false), mVolumeCtrlIdx(-1), mLeftVolume(UINT_MAX), mRightVolume(UINT_MAX),
 #ifdef QCOM_DIRECTTRACK
@@ -1669,7 +1669,7 @@ sp<AudioFlinger::EffectModule> AudioFlinger::EffectChain::getEffectFromType_l(
 }
 
 #ifdef HW_ACC_EFFECTS
-void AudioFlinger::EffectChain::setHwAccForSessionId_l(int sessionId, int id)
+void AudioFlinger::EffectChain::setHwAccForSessionId_l(audio_session_t sessionId, int id)
 {
     size_t size = mEffects.size();
     ALOGV("setHwAccForSessionId_l");
