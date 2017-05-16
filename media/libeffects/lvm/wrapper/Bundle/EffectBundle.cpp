@@ -2396,8 +2396,14 @@ int Equalizer_getParameter(EffectContext     *pContext,
                 ALOGE("\tERROR Equalizer_getParameter() EQ_PARAM_GET_PRESET_NAME preset %d",
                         param2);
             }
+	}
+
+        if (*pValueSize < 1) {
+            status = -EINVAL;
+            android_errorWriteLog(0x534e4554, "37536407");
             break;
         }
+
         name = (char *)pValue;
         strncpy(name, EqualizerGetPresetName(param2), *pValueSize - 1);
         name[*pValueSize - 1] = 0;
@@ -2484,6 +2490,7 @@ int Equalizer_setParameter (EffectContext *pContext,
                 android_errorWriteLog(0x534e4554, "32095626");
                 ALOGE("\tERROR Equalizer_setParameter() EQ_PARAM_BAND_LEVEL band %d", band);
             }
+            status = -EINVAL;
             break;
         }
         EqualizerSetBandLevel(pContext, band, level);
@@ -3555,3 +3562,4 @@ audio_effect_library_t AUDIO_EFFECT_LIBRARY_INFO_SYM = {
 };
 
 }
+
