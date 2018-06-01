@@ -604,6 +604,9 @@ void __attribute__((optimize("no-tree-vectorize"))) ID3::Iterator::getstring(Str
         // UCS-2
         // API wants number of characters, not number of bytes...
         int len = n / 2;
+        if (len == 0) {
+            return;
+        }
         const char16_t *framedata = (const char16_t *) (frameData + 1);
         char16_t *framedatacopy = NULL;
         if (*framedata == 0xfffe) {
